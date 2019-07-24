@@ -58,6 +58,7 @@ public class RomLoader {
 		parseCartHeader();
 		
 		// Load up the needed Rom Type
+		loadRomInstance();
 	}
 	
 	public void loadRomInstance() throws RomTypeClassNotFound {
