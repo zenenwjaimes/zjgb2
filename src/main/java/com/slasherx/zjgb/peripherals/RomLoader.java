@@ -22,7 +22,7 @@ import org.apache.commons.io.*;
  *
  */
 public class RomLoader {
-	public static byte[] rom = new byte[8388608];
+	public static byte[] rom = new byte[0x800000];
 	public AbstractRom romInstance;
 
 	private static Logger logger;

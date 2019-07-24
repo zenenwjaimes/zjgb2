@@ -33,6 +33,8 @@ public class LR35902 implements CpuAbstract {
 	private short nextPC = 0x0;
 	private int counter = 0x0;
 	
+	private byte[] memory;
+	
 	/**
 	 * 
 	 */
@@ -40,7 +42,13 @@ public class LR35902 implements CpuAbstract {
 
 	public LR35902(Logger logger4j, AbstractRom rom) {
 		logger = logger4j;
-		this.rom = rom;
+		setRom(rom);
+		setMemory(new byte[0x10000]);
+		
+		// Load the rom data into memory
+		// both banks into memory
+		loadRomData(0);
+		loadRomData(1);
 	}
 	
 	public LR35902(Logger logger4j, AbstractRom rom, Map<String, Map<String, ?>> registers) {
@@ -60,6 +68,14 @@ public class LR35902 implements CpuAbstract {
 				logger.error(e);
 			}
 		});
+	}
+	
+	public void loadRomData(int bank) {
+		int address = 0x8000 * bank;
+		
+		for (int i = 0; i < 0x8000; i++) {
+			memory[address + i] = getRom().romData[address + i];
+		}		
 	}
 	
 	@Override
@@ -94,9 +110,9 @@ public class LR35902 implements CpuAbstract {
 	@Override
 	public void fetchNextInstruction() throws UnsupportedCpuOperation {
 		PC = nextPC;
-		nextOpcode = rom.romData[PC];
-		opcode2 = rom.romData[PC + 1];
-		opcode3 = rom.romData[PC + 2];
+		nextOpcode = getRom().romData[PC];
+		opcode2 = getRom().romData[PC + 1];
+		opcode3 = getRom().romData[PC + 2];
 	}
 	
 	@Override
@@ -105,6 +121,101 @@ public class LR35902 implements CpuAbstract {
 		logCurrentCpuDebug();
 		
 		switch ((nextOpcode & 0xFF)) {
+			// LD
+			case 0x01: //
+			case 0x02:
+			case 0x11:
+			case 0x12:
+			case 0x21:
+			case 0x22:
+			case 0x31:
+			case 0x32:
+			case 0x06: //
+			case 0x16:
+			case 0x26:
+			case 0x36:
+			case 0x08: //
+			case 0x0A: //
+			case 0x1A:
+			case 0x2A:
+			case 0x3A:
+			case 0x0E: //
+			case 0x1E:
+			case 0x2E:
+			case 0x3E:
+			case 0xE0: //
+			case 0xF0:
+			case 0xE2: //
+			case 0xF2:
+			case 0xF8: //
+			case 0xF9:
+			case 0xFA:
+			case 0xEA:
+			case 0x40: //
+			case 0x41:
+			case 0x42:
+			case 0x43:
+			case 0x44:
+			case 0x45:
+			case 0x46:
+			case 0x47:
+			case 0x48:
+			case 0x49:
+			case 0x4a:
+			case 0x4b:
+			case 0x4c:
+			case 0x4d:
+			case 0x4e:
+			case 0x4f:
+			case 0x50:
+			case 0x51:
+			case 0x52:
+			case 0x53:
+			case 0x54:
+			case 0x55:
+			case 0x56:
+			case 0x57:
+			case 0x58:
+			case 0x59:
+			case 0x5a:
+			case 0x5b:
+			case 0x5c:
+			case 0x5d:
+			case 0x5e:
+			case 0x5f:
+			case 0x60:
+			case 0x61:
+			case 0x62:
+			case 0x63:
+			case 0x64:
+			case 0x65:
+			case 0x66:
+			case 0x67:
+			case 0x68:
+			case 0x69:
+			case 0x6a:
+			case 0x6b:
+			case 0x6c:
+			case 0x6d:
+			case 0x6e:
+			case 0x6f:
+			case 0x70:
+			case 0x71:
+			case 0x72:
+			case 0x73:
+			case 0x74:
+			case 0x75:
+			case 0x77:
+			case 0x78:
+			case 0x79:
+			case 0x7a:
+			case 0x7b:
+			case 0x7c:
+			case 0x7d:
+			case 0x7e:
+			case 0x7f:
+				handleLoadMemory();
+				break;
 			// JP
 			case 0xC2:
 			case 0xC3:
@@ -188,6 +299,115 @@ public class LR35902 implements CpuAbstract {
 		}
 	}
 	
+	public void handleLoadMemory() throws UnsupportedCpuOperation {
+		int opSize = 1;
+		int cycles = 4;
+		switch ((nextOpcode & 0xFF)) {
+//			case 0x01: //
+//			case 0x02:
+//			case 0x11:
+//			case 0x12:
+			case 0x21: // LD HL, imm16
+				opSize = 3;
+				cycles = 12;
+				
+				setRegL(opcode2); // Least significant bit
+				setRegH(opcode3); 
+				break;
+//			case 0x22:
+//			case 0x31:
+//			case 0x32:
+//			case 0x06: //
+//			case 0x16:
+//			case 0x26:
+//			case 0x36:
+//			case 0x08: //
+//			case 0x0A: //
+//			case 0x1A:
+//			case 0x2A:
+//			case 0x3A:
+//			case 0x0E: //
+//			case 0x1E:
+//			case 0x2E:
+//			case 0x3E:
+//			case 0xE0: //
+//			case 0xF0:
+//			case 0xE2: //
+//			case 0xF2:
+//			case 0xF8: //
+//			case 0xF9:
+//			case 0xFA:
+//			case 0xEA:
+//			case 0x40: //
+//			case 0x41:
+//			case 0x42:
+//			case 0x43:
+//			case 0x44:
+//			case 0x45:
+//			case 0x46:
+//			case 0x47:
+//			case 0x48:
+//			case 0x49:
+//			case 0x4a:
+//			case 0x4b:
+//			case 0x4c:
+//			case 0x4d:
+//			case 0x4e:
+//			case 0x4f:
+//			case 0x50:
+//			case 0x51:
+//			case 0x52:
+//			case 0x53:
+//			case 0x54:
+//			case 0x55:
+//			case 0x56:
+//			case 0x57:
+//			case 0x58:
+//			case 0x59:
+//			case 0x5a:
+//			case 0x5b:
+//			case 0x5c:
+//			case 0x5d:
+//			case 0x5e:
+//			case 0x5f:
+//			case 0x60:
+//			case 0x61:
+//			case 0x62:
+//			case 0x63:
+//			case 0x64:
+//			case 0x65:
+//			case 0x66:
+//			case 0x67:
+//			case 0x68:
+//			case 0x69:
+//			case 0x6a:
+//			case 0x6b:
+//			case 0x6c:
+//			case 0x6d:
+//			case 0x6e:
+//			case 0x6f:
+//			case 0x70:
+//			case 0x71:
+//			case 0x72:
+//			case 0x73:
+//			case 0x74:
+//			case 0x75:
+//			case 0x77:
+//			case 0x78:
+//			case 0x79:
+//			case 0x7a:
+//			case 0x7b:
+//			case 0x7c:
+//			case 0x7d:
+//			case 0x7e:
+//			case 0x7f:
+			default:
+				handleInvalidCpuOperation();
+		}
+		setCpuStatus((short)((PC & 0xFFFF) + opSize), cycles);
+
+	}
+	
 	/**
 	 * Hard implementation of the jump ops
 	 * 
@@ -209,6 +429,34 @@ public class LR35902 implements CpuAbstract {
 		}
 	}
 	
+	/**
+	 * @return the rom
+	 */
+	public AbstractRom getRom() {
+		return rom;
+	}
+
+	/**
+	 * @param rom the rom to set
+	 */
+	public void setRom(AbstractRom rom) {
+		this.rom = rom;
+	}
+
+	/**
+	 * @return the memory
+	 */
+	public byte[] getMemory() {
+		return memory;
+	}
+
+	/**
+	 * @param memory the memory to set
+	 */
+	public void setMemory(byte[] memory) {
+		this.memory = memory;
+	}
+
 	/**
 	 * @param regA the regA to set
 	 */
@@ -299,20 +547,20 @@ public class LR35902 implements CpuAbstract {
 		return this;
 	}
 
-	public Short regAF() {
+	public short regAF() {
 		return (short) (((getRegA() & 0xFF) << 8) + (getRegF() & 0xFF));
 	}
 	
-	public Short regBC() {
+	public short regBC() {
 		return (short) (((getRegB() & 0xFF) << 8) + (getRegC() & 0xFF));
 	}
 	
-	public Short regDE() {
+	public short regDE() {
 		return (short) (((getRegD() & 0xFF) << 8) + (getRegE() & 0xFF));
 	}
 	
 	
-	public Short regHL() {
+	public short regHL() {
 		return (short) (((getRegH() & 0xFF) << 8) + (getRegL() & 0xFF));
 	}
 

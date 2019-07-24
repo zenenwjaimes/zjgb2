@@ -23,6 +23,6 @@ public class NoBankRom extends AbstractRom {
 	public NoBankRom(RomLoader romLoader) {
 		super(romLoader);
 		
-		romData = BitUtils.getByteRange(romLoader.rom, 0x0000, 0x8000);
+		setRomData(BitUtils.getByteRange(romLoader.rom, 0x0000, 0x10000));
 	}
 }
