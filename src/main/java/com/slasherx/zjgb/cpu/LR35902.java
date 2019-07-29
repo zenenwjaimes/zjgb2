@@ -78,6 +78,67 @@ public class LR35902 implements CpuAbstract {
 		}		
 	}
 	
+	public void writeValueToMemory(byte value, short location) throws InvalidMemoryLocation {
+		int memAddress = (int)(location & 0xFFFF);
+		memory[memAddress] = value;
+		
+		// write to bank 0
+		if (memAddress >= 0x0 && memAddress <= 0x3FFF) {
+			
+		} else if (memAddress >= 0x4000 && memAddress <= 0x7FFF) { // write to bank "1"
+			
+		} else if (memAddress >= 0x8000 && memAddress <= 0x9FFF) { // vram 
+
+		} else if (memAddress >= 0xA000 && memAddress <= 0xBFFF) { // cart ram 
+
+		} else if (memAddress >= 0xC000 && memAddress <= 0xDFFF) { // working ram 
+
+		} else if (memAddress >= 0xE000 && memAddress <= 0xFDFF) { // shadow ram 
+
+		} else if (memAddress >= 0xFE00 && memAddress <= 0xFE9F) { // sprite
+
+		} else if (memAddress >= 0xFF00 && memAddress <= 0xFF7F) { // mem mapping
+
+		} else if (memAddress >= 0xFF80 && memAddress <= 0xFFFF) { // zero page 
+
+		} else {
+			logCurrentCpuDebug();
+			logger.info(this);
+			throw new InvalidMemoryLocation("Invalid memory location specified: " + BitUtils.shortToString(location));
+		}
+	}
+	
+	public byte readValueFromMemory(short location) throws InvalidMemoryLocation {
+		int memAddress = (int)(location & 0xFFFF);
+		
+		// read from bank 0
+		if (memAddress >= 0x0 && memAddress <= 0x3FFF) {
+			
+		} else if (memAddress >= 0x4000 && memAddress <= 0x7FFF) { // read from bank "1"
+			
+		} else if (memAddress >= 0x8000 && memAddress <= 0x9FFF) { // vram 
+
+		} else if (memAddress >= 0xA000 && memAddress <= 0xBFFF) { // cart ram 
+
+		} else if (memAddress >= 0xC000 && memAddress <= 0xDFFF) { // working ram 
+
+		} else if (memAddress >= 0xE000 && memAddress <= 0xFDFF) { // shadow ram 
+
+		} else if (memAddress >= 0xFE00 && memAddress <= 0xFE9F) { // sprite
+
+		} else if (memAddress >= 0xFF00 && memAddress <= 0xFF7F) { // mem mapping
+
+		} else if (memAddress >= 0xFF80 && memAddress <= 0xFFFF) { // zero page 
+
+		} else {
+			logCurrentCpuDebug();
+			logger.info(this);
+			throw new InvalidMemoryLocation("Invalid memory location specified: " + BitUtils.shortToString(location));
+		}
+		
+		return memory[memAddress];
+	}
+	
 	@Override
 	public void run() {
 		fetchNextInstruction();
@@ -87,8 +148,9 @@ public class LR35902 implements CpuAbstract {
 	public void setZeroFlag() {
 		setRegF((byte)BitUtils.setBit(getRegF(), 7));
 	}
-	
+
 	public void logCurrentCpuDebug() {
+		logger.info("cycles {}", counter);
 		logger.info("current pc {}", BitUtils.shortToString(PC));
 		logger.info("current sp {}", BitUtils.shortToString(SP));
 		logger.info("next pc {}", BitUtils.shortToString(nextPC));
@@ -303,10 +365,28 @@ public class LR35902 implements CpuAbstract {
 		int opSize = 1;
 		int cycles = 4;
 		switch ((nextOpcode & 0xFF)) {
-//			case 0x01: //
-//			case 0x02:
-//			case 0x11:
-//			case 0x12:
+			case 0x01: // LD BC, imm16
+				opSize = 3;
+				cycles = 12;
+				
+				setRegC(opcode2); // Least significant bit
+				setRegB(opcode3);
+				break;
+			case 0x02: // LD (BC), A
+				cycles = 8;
+				writeValueToMemory(getRegA(), regBC());
+				break;
+			case 0x11: // LD DE, imm16
+				opSize = 3;
+				cycles = 12;
+				
+				setRegE(opcode2); // Least significant bit
+				setRegD(opcode3); 
+				break;
+			case 0x12: // LD (DE), A
+				cycles = 8;
+				writeValueToMemory(getRegA(), regDE());
+				break;
 			case 0x21: // LD HL, imm16
 				opSize = 3;
 				cycles = 12;
@@ -314,22 +394,94 @@ public class LR35902 implements CpuAbstract {
 				setRegL(opcode2); // Least significant bit
 				setRegH(opcode3); 
 				break;
-//			case 0x22:
-//			case 0x31:
-//			case 0x32:
-//			case 0x06: //
-//			case 0x16:
-//			case 0x26:
-//			case 0x36:
+			case 0x22: // LD (HL+), A
+			{
+				short incHL = (short)(regHL() + 1);
+				byte high = (byte)((incHL >> 8) & 0xFF);
+				byte low = (byte)(incHL & 0xFF);
+				
+				cycles = 8;
+				writeValueToMemory(getRegA(), regHL());
+				
+				setRegH(high);
+				setRegL(low);
+			}
+				break;
+			case 0x31: // LD SP, imm16
+				opSize = 3;
+				cycles = 12;
+				setSP( BitUtils.bytesToShort(opcode3, opcode2) );
+				break;
+			case 0x32: // LD (HL-), A
+			{
+				logger.info("HL before: {}",  BitUtils.shortToString(regHL()));
+				logger.info("H before: {}",  BitUtils.byteToString(getRegH()));
+				logger.info("L before: {}", BitUtils.byteToString( getRegL()));
+
+				short decHL = (short)(regHL() - 1);
+				byte high = (byte)((decHL >> 8) & 0xFF);
+				byte low = (byte)(decHL & 0xFF);
+				
+				cycles = 8;
+				writeValueToMemory(getRegA(), regHL());
+				
+				setRegH(high);
+				setRegL(low);
+				logger.info("HL after: {}",  BitUtils.shortToString(regHL()));
+				logger.info("H after: {}",  BitUtils.byteToString(getRegH()));
+				logger.info("L after: {}",  BitUtils.byteToString(getRegL()));
+			}
+				break;
+			case 0x06: // LD B, imm8
+				opSize = 2;
+				cycles = 8;
+				setRegB(opcode2);
+				break;
+			case 0x16: // LD D, imm8
+				opSize = 2;
+				cycles = 8;
+				setRegD(opcode2);
+				break;
+			case 0x26: // LD H, imm8
+				opSize = 2;
+				cycles = 8;
+				setRegB(opcode2);
+				break;
+			case 0x36: // LD (HL), imm8
+				opSize = 2;
+				cycles = 12;
+				setRegB(opcode2);
+				writeValueToMemory(opcode2, regHL());
+				break;
 //			case 0x08: //
 //			case 0x0A: //
 //			case 0x1A:
 //			case 0x2A:
 //			case 0x3A:
-//			case 0x0E: //
-//			case 0x1E:
-//			case 0x2E:
-//			case 0x3E:
+			case 0x0E: // LD C, 8imm
+				opSize = 2;
+				cycles = 8;
+				
+				setRegC(opcode2);
+				break;
+			case 0x1E: // LD E, 8imm
+				opSize = 2;
+				cycles = 8;
+				
+				setRegE(opcode2);
+				break;
+			case 0x2E: // LD L, 8imm
+				opSize = 2;
+				cycles = 8;
+				
+				setRegL(opcode2);
+				break;
+			case 0x3E: // LD A, 8imm
+				opSize = 2;
+				cycles = 8;
+				
+				setRegA(opcode2);
+				break;
 //			case 0xE0: //
 //			case 0xF0:
 //			case 0xE2: //
