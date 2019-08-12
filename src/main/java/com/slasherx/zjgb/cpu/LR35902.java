@@ -16,7 +16,7 @@ import com.slasherx.zjgb.utils.BitUtils;
  */
 public class LR35902 implements CpuAbstract {
 	private static Logger logger;
-	
+
 	private byte nextOpcode = 0x0;
 	private byte opcode2 = 0x0;
 	private byte opcode3 = 0x0;
@@ -164,9 +164,18 @@ public class LR35902 implements CpuAbstract {
 		throw new UnsupportedCpuOperation("Unexpected value: " + BitUtils.byteToString(nextOpcode));
 	}
 	
-	public void setCpuStatus(short jumpToPC, int i) {
+	public void setCpuStatus(String instructionName, int opSize, short jumpToPC, int i) {
 		nextPC = jumpToPC;
 		counter += i;
+		
+		if (opSize == 2) {
+			logger.info("{} {} {}", instructionName.toUpperCase(), BitUtils.byteToString(nextOpcode).toUpperCase(), BitUtils.byteToString(opcode2).toUpperCase());
+		} else if (opSize == 3) {
+			logger.info("{} {} {} {}", instructionName.toUpperCase(), BitUtils.byteToString(nextOpcode).toUpperCase(), BitUtils.byteToString(opcode2).toUpperCase(), BitUtils.byteToString(opcode3).toUpperCase());
+
+		} else {
+			logger.info("{} {}", instructionName.toUpperCase(), BitUtils.byteToString(nextOpcode).toUpperCase());
+		}
 	}
 	
 	@Override
@@ -182,126 +191,64 @@ public class LR35902 implements CpuAbstract {
 		logger.info("RUNNING INSTRUCTION AT PC: {}", BitUtils.shortToString(PC));
 		logCurrentCpuDebug();
 		
-		switch ((nextOpcode & 0xFF)) {
-			// LD
-			case 0x01: //
-			case 0x02:
-			case 0x11:
-			case 0x12:
-			case 0x21:
-			case 0x22:
-			case 0x31:
-			case 0x32:
-			case 0x06: //
-			case 0x16:
-			case 0x26:
-			case 0x36:
-			case 0x08: //
-			case 0x0A: //
-			case 0x1A:
-			case 0x2A:
-			case 0x3A:
-			case 0x0E: //
-			case 0x1E:
-			case 0x2E:
-			case 0x3E:
-			case 0xE0: //
-			case 0xF0:
-			case 0xE2: //
-			case 0xF2:
-			case 0xF8: //
-			case 0xF9:
-			case 0xFA:
-			case 0xEA:
-			case 0x40: //
-			case 0x41:
-			case 0x42:
-			case 0x43:
-			case 0x44:
-			case 0x45:
-			case 0x46:
-			case 0x47:
-			case 0x48:
-			case 0x49:
-			case 0x4a:
-			case 0x4b:
-			case 0x4c:
-			case 0x4d:
-			case 0x4e:
-			case 0x4f:
-			case 0x50:
-			case 0x51:
-			case 0x52:
-			case 0x53:
-			case 0x54:
-			case 0x55:
-			case 0x56:
-			case 0x57:
-			case 0x58:
-			case 0x59:
-			case 0x5a:
-			case 0x5b:
-			case 0x5c:
-			case 0x5d:
-			case 0x5e:
-			case 0x5f:
-			case 0x60:
-			case 0x61:
-			case 0x62:
-			case 0x63:
-			case 0x64:
-			case 0x65:
-			case 0x66:
-			case 0x67:
-			case 0x68:
-			case 0x69:
-			case 0x6a:
-			case 0x6b:
-			case 0x6c:
-			case 0x6d:
-			case 0x6e:
-			case 0x6f:
-			case 0x70:
-			case 0x71:
-			case 0x72:
-			case 0x73:
-			case 0x74:
-			case 0x75:
-			case 0x77:
-			case 0x78:
-			case 0x79:
-			case 0x7a:
-			case 0x7b:
-			case 0x7c:
-			case 0x7d:
-			case 0x7e:
-			case 0x7f:
-				handleLoadMemory();
-				break;
-			// JP
-			case 0xC2:
-			case 0xC3:
-			case 0xCA:
-			case 0xD2:
-			case 0xDA:
-			case 0xE9:
-				handleJump();
-				break;
-			// XOR
-			case 0xA8:
-			case 0xA9:
-			case 0xAA:
-			case 0xAB:
-			case 0xAC:
-			case 0xAD:
-			case 0xAE:
-			case 0xAF:
-			case 0xEE:
-				handleXor();
-				break;
+		int nextOp = (nextOpcode & 0xFF);
 		
-			default:
-				handleInvalidCpuOperation();
+		if ((nextOp >= 0xA8 && nextOp <= 0xAF) || nextOp == 0xEE) { // XOR
+			handleXor();
+		} else if (
+				(nextOp >= 0xC2 || nextOp <= 0xC3)
+				|| (nextOp == 0xCA)
+				|| (nextOp == 0xD2)
+				|| (nextOp == 0xDA)
+				|| (nextOp == 0xE9)
+			) {
+			handleJump();
+		} else if (
+				(nextOp >= 0x40 && nextOp <= 0x75)
+				|| (nextOp >= 0x77 && nextOp <= 0x7F)
+				
+				|| (nextOp == 0x01)
+				|| (nextOp == 0x11)
+				|| (nextOp == 0x21)
+				|| (nextOp == 0x31)
+				
+				|| (nextOp == 0x02)
+				|| (nextOp == 0x12)
+				|| (nextOp == 0x22)
+				|| (nextOp == 0x32)
+				
+				|| (nextOp == 0x06)
+				|| (nextOp == 0x16)
+				|| (nextOp == 0x26)
+				|| (nextOp == 0x36)
+				
+				|| (nextOp == 0x08)
+				
+				|| (nextOp == 0x0A)
+				|| (nextOp == 0x1A)
+				|| (nextOp == 0x2A)
+				|| (nextOp == 0x3A)
+				
+				|| (nextOp == 0x0E)
+				|| (nextOp == 0x1E)
+				|| (nextOp == 0x2E)
+				|| (nextOp == 0x3E)
+				
+				|| (nextOp == 0xE0)
+				|| (nextOp == 0xF0)
+
+				|| (nextOp == 0xE2)
+				|| (nextOp == 0xF2)
+
+				|| (nextOp == 0xF8)
+				|| (nextOp == 0xF9)
+
+				|| (nextOp == 0xFA)
+				|| (nextOp == 0xEA)
+			) { // LD
+			handleLoadMemory();
+		} else { // Throw up that exception please
+			handleInvalidCpuOperation();
 		}
 	}
 	
@@ -311,34 +258,44 @@ public class LR35902 implements CpuAbstract {
 	 * @throws UnsupportedCpuOperation
 	 */
 	public void handleXor() throws UnsupportedCpuOperation {
+		String opType = "";
 		int cycles = 4;
 		int opSize = 1;
 		switch ((nextOpcode & 0xFF)) {
 			case 0xA8:
+				opType = "XOR B";
 				xor(regB);
 				break;
 			case 0xA9:
+				opType = "XOR C";
 				xor(regC);
 				break;
 			case 0xAA:
+				opType = "XOR D";
 				xor(regD);
 				break;
 			case 0xAB:
+				opType = "XOR E";
 				xor(regE);
 				break;
 			case 0xAC:
+				opType = "XOR H";
 				xor(regH);
 				break;
 			case 0xAD:
+				opType = "XOR L";
 				xor(regL);
 				break;
 			//case 0xAE:
+				//opType = "XOR (HL)";
 				//cycles = 8;
 				//break;
 			case 0xAF:
+				opType = "XOR A";
 				xor(regA);
 				break;
 			case 0xEE:
+				opType = "XOR IMM";
 				xor(opcode2); // Immediate xor
 				cycles = 8;
 				opSize = 2;
@@ -348,7 +305,7 @@ public class LR35902 implements CpuAbstract {
 				handleInvalidCpuOperation();				
 		}
 		
-		setCpuStatus((short)((PC & 0xFFFF) + opSize), cycles);
+		setCpuStatus(opType, opSize, (short)((PC & 0xFFFF) + opSize), cycles);
 	}
 	
 	public void xor(byte op) {
@@ -362,10 +319,13 @@ public class LR35902 implements CpuAbstract {
 	}
 	
 	public void handleLoadMemory() throws UnsupportedCpuOperation {
+		String opType = "";
 		int opSize = 1;
 		int cycles = 4;
+		
 		switch ((nextOpcode & 0xFF)) {
 			case 0x01: // LD BC, imm16
+				opType = "LD BC, imm16";
 				opSize = 3;
 				cycles = 12;
 				
@@ -373,10 +333,12 @@ public class LR35902 implements CpuAbstract {
 				setRegB(opcode3);
 				break;
 			case 0x02: // LD (BC), A
+				opType = "LD (BC), A";
 				cycles = 8;
 				writeValueToMemory(getRegA(), regBC());
 				break;
 			case 0x11: // LD DE, imm16
+				opType = "LD DE, imm16";
 				opSize = 3;
 				cycles = 12;
 				
@@ -384,10 +346,12 @@ public class LR35902 implements CpuAbstract {
 				setRegD(opcode3); 
 				break;
 			case 0x12: // LD (DE), A
+				opType = "LD (DE), A";
 				cycles = 8;
 				writeValueToMemory(getRegA(), regDE());
 				break;
 			case 0x21: // LD HL, imm16
+				opType = "LD HL, imm16";
 				opSize = 3;
 				cycles = 12;
 				
@@ -396,6 +360,7 @@ public class LR35902 implements CpuAbstract {
 				break;
 			case 0x22: // LD (HL+), A
 			{
+				opType = "LD (HL+), A";
 				short incHL = (short)(regHL() + 1);
 				byte high = (byte)((incHL >> 8) & 0xFF);
 				byte low = (byte)(incHL & 0xFF);
@@ -408,6 +373,7 @@ public class LR35902 implements CpuAbstract {
 			}
 				break;
 			case 0x31: // LD SP, imm16
+				opType = "LD SP, imm16";
 				opSize = 3;
 				cycles = 12;
 				setSP( BitUtils.bytesToShort(opcode3, opcode2) );
@@ -418,6 +384,7 @@ public class LR35902 implements CpuAbstract {
 				logger.info("H before: {}",  BitUtils.byteToString(getRegH()));
 				logger.info("L before: {}", BitUtils.byteToString( getRegL()));
 
+				opType = "LD (HL-), A";
 				short decHL = (short)(regHL() - 1);
 				byte high = (byte)((decHL >> 8) & 0xFF);
 				byte low = (byte)(decHL & 0xFF);
@@ -433,21 +400,25 @@ public class LR35902 implements CpuAbstract {
 			}
 				break;
 			case 0x06: // LD B, imm8
+				opType = "LD B, imm8";
 				opSize = 2;
 				cycles = 8;
 				setRegB(opcode2);
 				break;
 			case 0x16: // LD D, imm8
+				opType = "LD D, imm8";
 				opSize = 2;
 				cycles = 8;
 				setRegD(opcode2);
 				break;
 			case 0x26: // LD H, imm8
+				opType = "LD H, imm8";
 				opSize = 2;
 				cycles = 8;
 				setRegB(opcode2);
 				break;
 			case 0x36: // LD (HL), imm8
+				opType = "LD (HL), imm8";
 				opSize = 2;
 				cycles = 12;
 				setRegB(opcode2);
@@ -459,24 +430,28 @@ public class LR35902 implements CpuAbstract {
 //			case 0x2A:
 //			case 0x3A:
 			case 0x0E: // LD C, 8imm
+				opType = "LD C, 8imm";
 				opSize = 2;
 				cycles = 8;
 				
 				setRegC(opcode2);
 				break;
 			case 0x1E: // LD E, 8imm
+				opType = "LD E, 8imm";
 				opSize = 2;
 				cycles = 8;
 				
 				setRegE(opcode2);
 				break;
 			case 0x2E: // LD L, 8imm
+				opType = "LD L, 8imm";
 				opSize = 2;
 				cycles = 8;
 				
 				setRegL(opcode2);
 				break;
 			case 0x3E: // LD A, 8imm
+				opType = "LD A, 8imm";
 				opSize = 2;
 				cycles = 8;
 				
@@ -556,7 +531,7 @@ public class LR35902 implements CpuAbstract {
 			default:
 				handleInvalidCpuOperation();
 		}
-		setCpuStatus((short)((PC & 0xFFFF) + opSize), cycles);
+		setCpuStatus(opType, opSize, (short)((PC & 0xFFFF) + opSize), cycles);
 
 	}
 	
@@ -566,19 +541,29 @@ public class LR35902 implements CpuAbstract {
 	 * @throws UnsupportedCpuOperation
 	 */
 	public void handleJump() throws UnsupportedCpuOperation {
+		int cycles = 0;
+		int opSize = 3;
+		short jumpAddress = 0x0;
+		String opType = "";
+		
 		switch ((nextOpcode & 0xFF)) {
 			//case 0xC2:
 			case 0xC3:
-				setCpuStatus(BitUtils.bytesToShort(opcode3, opcode2), 12);
+				opType = "JP a16";
+				cycles = 16;
+				jumpAddress = BitUtils.bytesToShort(opcode3, opcode2);
 				break;
 			//case 0xCA:
 			//case 0xD2:
 			//case 0xDA:
 			//case 0xE9:
+				//opSize = 1;
 	
 			default:
 				handleInvalidCpuOperation();
 		}
+		
+		setCpuStatus(opType, opSize, jumpAddress, cycles);
 	}
 	
 	/**
