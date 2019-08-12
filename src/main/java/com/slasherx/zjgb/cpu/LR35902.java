@@ -103,7 +103,6 @@ public class LR35902 implements CpuAbstract {
 
 		} else {
 			logCurrentCpuDebug();
-			logger.info(this);
 			throw new InvalidMemoryLocation("Invalid memory location specified: " + BitUtils.shortToString(location));
 		}
 	}
@@ -132,7 +131,6 @@ public class LR35902 implements CpuAbstract {
 
 		} else {
 			logCurrentCpuDebug();
-			logger.info(this);
 			throw new InvalidMemoryLocation("Invalid memory location specified: " + BitUtils.shortToString(location));
 		}
 		
@@ -150,6 +148,7 @@ public class LR35902 implements CpuAbstract {
 	}
 
 	public void logCurrentCpuDebug() {
+		logger.info("RUNNING INSTRUCTION AT PC: {}", BitUtils.shortToString(PC));
 		logger.info("cycles {}", counter);
 		logger.info("current pc {}", BitUtils.shortToString(PC));
 		logger.info("current sp {}", BitUtils.shortToString(SP));
@@ -160,7 +159,7 @@ public class LR35902 implements CpuAbstract {
 	
 	public void handleInvalidCpuOperation() throws UnsupportedCpuOperation  {
 		logCurrentCpuDebug();
-		logger.info(this);
+		logger.debug(this);
 		throw new UnsupportedCpuOperation("Unexpected value: " + BitUtils.byteToString(nextOpcode));
 	}
 	
@@ -188,7 +187,6 @@ public class LR35902 implements CpuAbstract {
 	
 	@Override
 	public void runNextInstruction() {
-		logger.info("RUNNING INSTRUCTION AT PC: {}", BitUtils.shortToString(PC));
 		logCurrentCpuDebug();
 		
 		int nextOp = (nextOpcode & 0xFF);
@@ -196,7 +194,7 @@ public class LR35902 implements CpuAbstract {
 		if ((nextOp >= 0xA8 && nextOp <= 0xAF) || nextOp == 0xEE) { // XOR
 			handleXor();
 		} else if (
-				(nextOp >= 0xC2 || nextOp <= 0xC3)
+				(nextOp >= 0xC2 && nextOp <= 0xC3)
 				|| (nextOp == 0xCA)
 				|| (nextOp == 0xD2)
 				|| (nextOp == 0xDA)
@@ -261,6 +259,7 @@ public class LR35902 implements CpuAbstract {
 		String opType = "";
 		int cycles = 4;
 		int opSize = 1;
+		
 		switch ((nextOpcode & 0xFF)) {
 			case 0xA8:
 				opType = "XOR B";
@@ -597,7 +596,6 @@ public class LR35902 implements CpuAbstract {
 	/**
 	 * @param regA the regA to set
 	 */
-	@SuppressWarnings("unused")
 	private LR35902 setRegA(byte regA) {
 		this.regA = regA;
 		return this;
@@ -606,7 +604,6 @@ public class LR35902 implements CpuAbstract {
 	/**
 	 * @param regF the regF toLR35902 set
 	 */
-	@SuppressWarnings("unused")
 	private LR35902 setRegF(byte regF) {
 		this.regF = regF;
 		return this;
@@ -615,7 +612,6 @@ public class LR35902 implements CpuAbstract {
 	/**
 	 * @param regB the regB to set
 	 */
-	@SuppressWarnings("unused")
 	private LR35902 setRegB(byte regB) {
 		this.regB = regB;
 		return this;
@@ -624,7 +620,6 @@ public class LR35902 implements CpuAbstract {
 	/**
 	 * @param regC the regC to set
 	 */
-	@SuppressWarnings("unused")
 	private LR35902 setRegC(byte regC) {
 		this.regC = regC;
 		return this;
@@ -633,7 +628,6 @@ public class LR35902 implements CpuAbstract {
 	/**
 	 * @param regD the regD to set
 	 */
-	@SuppressWarnings("unused")
 	private LR35902 setRegD(byte regD) {
 		this.regD = regD;
 		return this;
@@ -642,7 +636,6 @@ public class LR35902 implements CpuAbstract {
 	/**
 	 * @param regE the regE to set
 	 */
-	@SuppressWarnings("unused")
 	private LR35902 setRegE(byte regE) {
 		this.regE = regE;
 		return this;
@@ -651,7 +644,6 @@ public class LR35902 implements CpuAbstract {
 	/**
 	 * @param regH the regH to set
 	 */
-	@SuppressWarnings("unused")
 	private LR35902 setRegH(byte regH) {
 		this.regH = regH;
 		return this;
@@ -660,7 +652,6 @@ public class LR35902 implements CpuAbstract {
 	/**
 	 * @param regL the regL to set
 	 */
-	@SuppressWarnings("unused")
 	private LR35902 setRegL(byte regL) {
 		this.regL = regL;
 		return this;
@@ -669,7 +660,6 @@ public class LR35902 implements CpuAbstract {
 	/**
 	 * @param sP the sP to set
 	 */
-	@SuppressWarnings("unused")
 	private LR35902 setSP(Short SP) {
 		this.SP = SP;
 		return this;
