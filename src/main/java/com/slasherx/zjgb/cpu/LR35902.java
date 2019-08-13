@@ -53,17 +53,18 @@ public class LR35902 implements CpuAbstract {
 	
 	public LR35902(Logger logger4j, AbstractRom rom, Map<String, Map<String, ?>> registers) {
 		this(logger4j, rom);
-
+		setInitialState(registers);
+	}
+	
+	public void setInitialState(Map<String, Map<String, ?>> registers) {
 		registers.forEach((k, v) -> {
 			try {
 				String normalizedSetterString = "set".concat(StringUtils.capitalize(k));						
-				Method regSetter = this.getClass().getDeclaredMethod(normalizedSetterString, Class.forName((String) v.get("clazz")));
+				Method regSetter = this.getClass().getDeclaredMethod(normalizedSetterString, ((String) v.get("clazz")).equalsIgnoreCase("byte") ? Byte.TYPE : Short.TYPE);
 				
 				regSetter.setAccessible(true);
 				regSetter.invoke(this, v.get("value"));
-				
-				logger.info(normalizedSetterString);
-			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException e) {
+			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				e.printStackTrace();
 				logger.error(e);
 			}
@@ -657,23 +658,6 @@ public class LR35902 implements CpuAbstract {
 		return this;
 	}
 
-	/**
-	 * @param sP the sP to set
-	 */
-	private LR35902 setSP(Short SP) {
-		this.SP = SP;
-		return this;
-	}
-
-	/**
-	 * @param pC the pC to set
-	 */
-	@SuppressWarnings("unused")
-	private LR35902 setPC(Short PC) {
-		this.PC = PC;
-		return this;
-	}
-
 	public short regAF() {
 		return (short) (((getRegA() & 0xFF) << 8) + (getRegF() & 0xFF));
 	}
@@ -761,6 +745,96 @@ public class LR35902 implements CpuAbstract {
 		return PC;
 	}
 	
+	/**
+	 * @return the nextOpcode
+	 */
+	public byte getNextOpcode() {
+		return nextOpcode;
+	}
+
+	/**
+	 * @param nextOpcode the nextOpcode to set
+	 */
+	private LR35902 setNextOpcode(byte nextOpcode) {
+		this.nextOpcode = nextOpcode;
+		return this;
+	}
+
+	/**
+	 * @return the opcode2
+	 */
+	public byte getOpcode2() {
+		return opcode2;
+	}
+
+	/**
+	 * @param opcode2 the opcode2 to set
+	 */
+	public LR35902 setOpcode2(byte opcode2) {
+		this.opcode2 = opcode2;
+		return this;
+	}
+
+	/**
+	 * @return the opcode3
+	 */
+	public byte getOpcode3() {
+		return opcode3;
+	}
+
+	/**
+	 * @param opcode3 the opcode3 to set
+	 */
+	public LR35902 setOpcode3(byte opcode3) {
+		this.opcode3 = opcode3;
+		return this;
+	}
+
+	/**
+	 * @return the nextPC
+	 */
+	public short getNextPC() {
+		return nextPC;
+	}
+
+	/**
+	 * @param nextPC the nextPC to set
+	 */
+	public void setNextPC(short nextPC) {
+		this.nextPC = nextPC;
+	}
+
+	/**
+	 * @return the counter
+	 */
+	public int getCounter() {
+		return counter;
+	}
+
+	/**
+	 * @param counter the counter to set
+	 */
+	public LR35902 setCounter(int counter) {
+		this.counter = counter;
+		return this;
+	}
+
+	/**
+	 * @param sP the sP to set
+	 */
+	private LR35902 setSP(short sP) {
+		SP = sP;
+		return this;
+	}
+
+	/**
+	 * @param pC the pC to set
+	 */
+	private LR35902 setPC(short pC) {
+		PC = pC;
+		return this;
+	}
+
 	@Override
 	public String toString() {
 		String cpuToString = String.join("\n","",

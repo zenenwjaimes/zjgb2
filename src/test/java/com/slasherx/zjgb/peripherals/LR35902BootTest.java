@@ -17,7 +17,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import com.slasherx.zjgb.cpu.LR35902;
 
-@DisplayName("After Loading Boot Rom Test")
+@DisplayName("After Loading Boot Rom")
 @TestInstance(Lifecycle.PER_CLASS)
 
 /**
@@ -33,17 +33,17 @@ public class LR35902BootTest {
 	void setUp() throws Exception {
 		Map<String, Map<String, ?>> registers = new HashMap<String, Map<String, ?>>();
 
-		registers.put("regA", Map.of("clazz", Byte.class.getName(), "value", (byte) 0x01));
-		registers.put("regF", Map.of("clazz", Byte.class.getName(), "value", (byte) 0xB0));
-		registers.put("regB", Map.of("clazz", Byte.class.getName(), "value", (byte) 0x00));
-		registers.put("regC", Map.of("clazz", Byte.class.getName(), "value", (byte) 0x13));
-		registers.put("regD", Map.of("clazz", Byte.class.getName(), "value", (byte) 0x00));
-		registers.put("regE", Map.of("clazz", Byte.class.getName(), "value", (byte) 0xD8));
-		registers.put("regH", Map.of("clazz", Byte.class.getName(), "value", (byte) 0x01));
-		registers.put("regL", Map.of("clazz", Byte.class.getName(), "value", (byte) 0x4D));
+		registers.put("regA", Map.of("clazz", "byte", "value", (byte) 0x01));
+		registers.put("regF", Map.of("clazz", "byte", "value", (byte) 0xB0));
+		registers.put("regB", Map.of("clazz", "byte", "value", (byte) 0x00));
+		registers.put("regC", Map.of("clazz", "byte", "value", (byte) 0x13));
+		registers.put("regD", Map.of("clazz", "byte", "value", (byte) 0x00));
+		registers.put("regE", Map.of("clazz", "byte", "value", (byte) 0xD8));
+		registers.put("regH", Map.of("clazz", "byte", "value", (byte) 0x01));
+		registers.put("regL", Map.of("clazz", "byte", "value", (byte) 0x4D));
 		
-		registers.put("SP", Map.of("clazz", Short.class.getName(), "value", (short) 0xFFFE));
-		registers.put("PC", Map.of("clazz", Short.class.getName(), "value", (short) 0x100));
+		registers.put("SP", Map.of("clazz", "short", "value", (short) 0xFFFE));
+		registers.put("PC", Map.of("clazz", "short", "value", (short) 0x100));
 
 
 		gameboyCpu = new LR35902(LR35902BootTest.logger, new RomLoader(logger, "/Users/slasherx/test.gb").romInstance, registers);
